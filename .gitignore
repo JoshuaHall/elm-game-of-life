@@ -3,6 +3,9 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 
+*.css
+*.map
+
 # Logs
 logs
 *.log
