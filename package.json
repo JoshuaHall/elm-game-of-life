@@ -1,0 +1,13 @@
+{
+  "name": "elm-game-of-life",
+  "version": "0.1.0",
+  "description": "Conway's Game of Life in Elm",
+  "main": "dist/elm.min.js",
+  "author": "JoshuaHall <joshuahallmail@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bulma": "^0.9.0",
+    "bulma-slider": "^2.0.4"
+  },
+  "devDependencies": {}
+}
