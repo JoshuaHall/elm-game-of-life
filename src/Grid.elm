@@ -1,4 +1,4 @@
-module Grid exposing (Grid, gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
+module Grid exposing (Grid, getNeighborCount, gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
 
 import Array exposing (Array)
 import Array.Extra as ArrayExtra
@@ -20,20 +20,17 @@ type alias Grid =
     Array (Array Bool)
 
 
-{-| Toggles the cell at a certain coordinate in the grid.
--}
-toggleCell : Int -> Int -> Grid -> Grid
-toggleCell a b =
-    ArrayExtra.update a <| ArrayExtra.update b not
-
-
 {-| Generates a 'square' 2d array where every value is the same.
 -}
 squareArrayRepeat : Int -> a -> Array (Array a)
 squareArrayRepeat length value =
+    let
+        arrayRepeat =
+            Array.repeat length
+    in
     value
-        |> Array.repeat length
-        |> Array.repeat length
+        |> arrayRepeat
+        |> arrayRepeat
 
 
 {-| The initial empty grid.
@@ -47,12 +44,25 @@ initialGrid =
 -}
 randomGridGenerator : Generator Grid
 randomGridGenerator =
+    let
+        randomArray =
+            RandomArray.array gridSideLength
+    in
     RandomExtra.bool
-        |> RandomArray.array gridSideLength
-        |> RandomArray.array gridSideLength
+        |> randomArray
+        |> randomArray
 
 
-{-| Runs the Game of Life once.
+{-| Toggles the cell at a certain coordinate in the grid.
+-}
+toggleCell : Int -> Int -> Grid -> Grid
+toggleCell a b =
+    not
+        |> ArrayExtra.update b
+        |> ArrayExtra.update a
+
+
+{-| Runs the Game of Life one iteration.
 -}
 runSimulation : Grid -> Grid
 runSimulation grid =
@@ -64,7 +74,7 @@ runSimulation grid =
                         (\j col ->
                             let
                                 neighbors =
-                                    getNeighborCount grid i j
+                                    getNeighborCount i j grid
                             in
                             if neighbors < 2 || neighbors > 3 then
                                 False
@@ -95,17 +105,17 @@ operations =
 
 {-| Counts the number of neighbors that a certain cell has.
 -}
-getNeighborCount : Grid -> Int -> Int -> Int
-getNeighborCount grid i j =
+getNeighborCount : Int -> Int -> Grid -> Int
+getNeighborCount i j grid =
     operations
-        |> List.filter (filterOperations grid i j)
+        |> List.filter (filterOperations i j grid)
         |> List.length
 
 
 {-| Filters `operations` to be only the cells that are alive around each cell.
 -}
-filterOperations : Grid -> Int -> Int -> ( Int, Int ) -> Bool
-filterOperations grid i j ( a, b ) =
+filterOperations : Int -> Int -> Grid -> ( Int, Int ) -> Bool
+filterOperations i j grid ( a, b ) =
     grid
         |> Array.get (i + a)
         |> Maybe.withDefault Array.empty
