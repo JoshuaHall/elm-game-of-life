@@ -1,10 +1,8 @@
-module Grid exposing (Grid, getNeighborCount, gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
+module Grid exposing (getNeighborCount, gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
 
-import Array exposing (Array)
-import Array.Extra as ArrayExtra
 import Random exposing (Generator)
-import Random.Array as RandomArray
 import Random.Extra as RandomExtra
+import SquareArray2D exposing (SquareArray2D)
 
 
 {-| The side length of the square grid.
@@ -14,77 +12,40 @@ gridSideLength =
     20
 
 
-{-| A 2 dimensional array representing the grid for Conway's Game of Life.
--}
-type alias Grid =
-    Array (Array Bool)
-
-
-{-| Generates a 'square' 2d array where every value is the same.
--}
-squareArrayRepeat : Int -> a -> Array (Array a)
-squareArrayRepeat length value =
-    let
-        arrayRepeat =
-            Array.repeat length
-    in
-    value
-        |> arrayRepeat
-        |> arrayRepeat
-
-
 {-| The initial empty grid.
 -}
-initialGrid : Grid
+initialGrid : SquareArray2D Bool
 initialGrid =
-    squareArrayRepeat gridSideLength False
-
-
-{-| Generates a grid where each square is randomly filled in.
--}
-randomGridGenerator : Generator Grid
-randomGridGenerator =
-    let
-        randomArray =
-            RandomArray.array gridSideLength
-    in
-    RandomExtra.bool
-        |> randomArray
-        |> randomArray
+    SquareArray2D.repeat gridSideLength False
 
 
 {-| Toggles the cell at a certain coordinate in the grid.
 -}
-toggleCell : Int -> Int -> Grid -> Grid
-toggleCell a b =
-    not
-        |> ArrayExtra.update b
-        |> ArrayExtra.update a
+toggleCell : Int -> Int -> SquareArray2D Bool -> SquareArray2D Bool
+toggleCell row column =
+    SquareArray2D.update row column not
 
 
 {-| Runs the Game of Life one iteration.
 -}
-runSimulation : Grid -> Grid
-runSimulation grid =
-    grid
-        |> Array.indexedMap
-            (\i row ->
-                row
-                    |> Array.indexedMap
-                        (\j col ->
-                            let
-                                neighbors =
-                                    getNeighborCount i j grid
-                            in
-                            if neighbors < 2 || neighbors > 3 then
-                                False
+runSimulation : SquareArray2D Bool -> SquareArray2D Bool
+runSimulation array =
+    array
+        |> SquareArray2D.indexedMap
+            (\row column cell ->
+                let
+                    neighbors : Int
+                    neighbors =
+                        getNeighborCount row column array
+                in
+                if neighbors < 2 || neighbors > 3 then
+                    False
 
-                            else if not col && neighbors == 3 then
-                                True
+                else if not cell && neighbors == 3 then
+                    True
 
-                            else
-                                col
-                        )
+                else
+                    cell
             )
 
 
@@ -105,19 +66,24 @@ operations =
 
 {-| Counts the number of neighbors that a certain cell has.
 -}
-getNeighborCount : Int -> Int -> Grid -> Int
-getNeighborCount i j grid =
+getNeighborCount : Int -> Int -> SquareArray2D Bool -> Int
+getNeighborCount i j array =
     operations
-        |> List.filter (filterOperations i j grid)
+        |> List.filter (filterOperations i j array)
         |> List.length
 
 
 {-| Filters `operations` to be only the cells that are alive around each cell.
 -}
-filterOperations : Int -> Int -> Grid -> ( Int, Int ) -> Bool
-filterOperations i j grid ( a, b ) =
-    grid
-        |> Array.get (i + a)
-        |> Maybe.withDefault Array.empty
-        |> Array.get (j + b)
+filterOperations : Int -> Int -> SquareArray2D Bool -> ( Int, Int ) -> Bool
+filterOperations i j array ( a, b ) =
+    array
+        |> SquareArray2D.get (i + a) (j + b)
         |> Maybe.withDefault False
+
+
+randomGridGenerator : Generator (SquareArray2D Bool)
+randomGridGenerator =
+    SquareArray2D.generator
+        RandomExtra.bool
+        gridSideLength

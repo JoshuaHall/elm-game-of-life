@@ -17,6 +17,6 @@ echo "Gzipped size: $(gzip $min -c | wc -c) bytes"
 
 echo "Compiling css..."
 
-sass index.scss styles.css
+sass index.scss dist/styles.css
 
 echo "Done."

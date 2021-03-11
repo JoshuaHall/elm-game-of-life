@@ -2,12 +2,13 @@ module Main exposing (main)
 
 import Array
 import Browser
-import Grid exposing (Grid, gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
+import Grid exposing (gridSideLength, initialGrid, randomGridGenerator, runSimulation, toggleCell)
 import Html exposing (Html, a, button, div, h3, input, label, li, p, text, ul)
 import Html.Attributes exposing (class, classList, for, href, id, step, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy)
 import Random
+import SquareArray2D exposing (SquareArray2D)
 import Time
 
 
@@ -22,7 +23,7 @@ main =
 
 
 type alias Model =
-    { grid : Grid
+    { grid : SquareArray2D Bool
     , started : Bool
     , simulationSpeed : Float
     }
@@ -47,7 +48,7 @@ type Msg
     = ToggleStarted
     | ChangeSimulationSpeed String
     | GetRandomizeGrid
-    | RandomizedGrid Grid
+    | RandomizedGrid (SquareArray2D Bool)
     | ResetGrid
     | RunSimulation
     | ToggleCell Int Int
@@ -168,37 +169,32 @@ simulationSpeedDisplayAndSlider simulationSpeed =
         ]
 
 
-gridDisplay : Grid -> Html Msg
+gridDisplay : SquareArray2D Bool -> Html Msg
 gridDisplay grid =
     div
         [ style "display" "grid"
         , style "gridTemplateColumns" ("repeat(" ++ String.fromInt gridSideLength ++ ", 20px)")
         ]
         (grid
-            |> Array.toList
-            |> List.indexedMap
-                (\i row ->
-                    row
-                        |> Array.toList
-                        |> List.indexedMap
-                            (\j cellValue ->
-                                div
-                                    [ onClick <| ToggleCell i j
-                                    , classList
-                                        [ ( "cell", True )
-                                        , ( if cellValue then
-                                                "alive"
+            |> SquareArray2D.indexedMap
+                (\row column value ->
+                    div
+                        [ onClick <| ToggleCell row column
+                        , classList
+                            [ ( "cell", True )
+                            , ( if value then
+                                    "alive"
 
-                                            else
-                                                "dead"
-                                          , True
-                                          )
-                                        ]
-                                    ]
-                                    []
-                            )
+                                else
+                                    "dead"
+                              , True
+                              )
+                            ]
+                        ]
+                        []
                 )
-            |> List.concat
+            |> SquareArray2D.toFlatArrayRowMajor
+            |> Array.toList
         )
 
 
